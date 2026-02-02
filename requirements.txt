@@ -1,6 +1,6 @@
-opencv-python
-tqdm
-lpips
-torch
-scikit-image
+opencv-python==4.6.0.66
+tqdm==4.62.3
+lpips==0.1.4
+torch==1.13.1
+scikit-image==0.18.3
 natsort
