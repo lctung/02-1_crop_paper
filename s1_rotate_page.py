@@ -8,12 +8,17 @@ from natsort import ns, natsorted
 def parse_args():
     parser = argparse.ArgumentParser(description='Step 1 rotate scan page')
 
-    parser.add_argument('--id',
-                        help='To rotated page from student id folder',
-                        default="112598018",
+    parser.add_argument('--name',
+                        help='To rotated page from target folder',
+                        default=None, 
                         type=str)
 
     args = parser.parse_args()
+
+    # 如果執行時沒有給 --id 參數，就用 input() 詢問
+    if args.id is None:
+        args.id = input("請輸入目標資料夾名稱：").strip()
+        
     return args
 
 def zoom_qrcode_finder(image, qrcode, thresh=64):
@@ -181,14 +186,14 @@ def rotate_img(file_path, index) -> bool:
 
 if __name__ == '__main__':
     args = parse_args()
-    student_id = args.id
+    target_folder = args.name
 
-    target_path = f'./{student_id}' # !!! 目標資料夾 !!!
-    result_path = f'rotated_{student_id}' # 存放資料夾
+    target_path = f'./{target_folder}' # !!! 目標資料夾 !!!
+    result_path = f'rotated_{target_folder}' # 存放資料夾
     if not os.path.exists(result_path):
         os.makedirs(result_path)
 
-    print(f"Handling page rotation, student id = {student_id}")
+    print(f"Handling page rotation, student id = {target_folder}")
 
     errorList = []
     allFileList = os.listdir(target_path)

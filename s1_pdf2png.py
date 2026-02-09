@@ -24,8 +24,8 @@ def pdf_to_png(pdf_path, output_folder, start_page=1, end_page=None, dpi=600):
         )
 
         # 進度條顯示
-        for i, img in tqdm(enumerate(images, start=start_page), total=len(images), desc="轉換進度"):
-            img.save(os.path.join(output_folder, f"{i}.png"), "PNG")
+        for page, img in tqdm(enumerate(images, start=start_page), total=len(images), desc="轉換進度"):
+            img.save(os.path.join(output_folder, f"page-{page:02}.png"), "PNG")
 
         print(f"轉換完成！圖片存儲於：{output_folder}")
 
@@ -33,7 +33,7 @@ def pdf_to_png(pdf_path, output_folder, start_page=1, end_page=None, dpi=600):
         print(f"發生錯誤：{e}")
 
 # 使用者輸入
-pdf_path = input("請輸入 PDF 文件的完整路徑（包含 .pdf）：").strip()
+pdf_path = input("請輸入 PDF 文件的完整路徑（包含 .pdf）：").strip('"')
 output_folder = input("請輸入輸出圖片的資料夾（設定為rotated_你的學號）：").strip()
 start_page = int(input("請輸入要切割的 PDF 起始頁：").strip())
 end_page = int(input("請輸入要切割的 PDF 結束頁：").strip())

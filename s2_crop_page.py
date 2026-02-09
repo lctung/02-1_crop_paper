@@ -77,7 +77,7 @@ def crop_boxes(image_folder, start_page, end_page, min_box_size, padding, json_p
     print(k)
     for page in range(start_page, end_page + 1):
         # 構建檔案名稱
-        image_file = f"{page}.png"
+        image_file = f"page-{page:02}.png"
         print(page)
         # 圖片路徑
         image_path = os.path.join(image_folder, image_file)
@@ -154,11 +154,11 @@ def crop_boxes(image_folder, start_page, end_page, min_box_size, padding, json_p
 
         bound_output_directory = 'rec_bound'
         os.makedirs(bound_output_directory, exist_ok=True)
-        cv2.imwrite(os.path.join(bound_output_directory, f'{page}.png'), img_np)
+        cv2.imwrite(os.path.join(bound_output_directory, f"page-{page:02}.png"), img_np)
 
 
 if __name__ == "__main__":
-    image_folder = r"D:\NTUT\AI\Font-Project\02-1_crop_paper\rotated_20260209-1" #輸入你的rotated資料夾路徑
+    image_folder = r"D:\NTUT\AI\Font-Project\02-1_crop_paper\rotated_114598033_千字文" #輸入你的rotated資料夾路徑
     start_page = int(input("Enter start page: "))  # 起始頁數
     end_page = int(input("Enter end page: "))      # 結束頁數
     min_box_size = 200 # 設定閾值，只保留寬和高都大於等於這個值的方框
