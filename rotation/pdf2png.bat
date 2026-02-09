@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-set "POPPLER_BIN=C:\Users\ctl20\.conda\envs\fontenv\Library\bin\pdftoppm.exe"
+set "POPPLER_BIN=C:\Users\LAB1223\anaconda3\envs\fontenv\Library\bin\pdftoppm.exe"
 
 for %%f in (*.pdf) do (
     echo [*] Processing... %%f
@@ -19,7 +19,7 @@ for %%f in (*.pdf) do (
         :: 抓取 "-" 之後的數字部分
         for /f "tokens=2 delims=-" %%a in ("%%~ni") do (
             set "num=%%a"
-            :: 移除數字開頭的 0 (Batch 特性：1/01/001 轉為純數字會去掉 0)
+            :: 移除數字開頭的 0
             set /a "plain_num=1!num! %% 1000"
             set /a "plain_num=!plain_num! - 1000"
             :: 重新命名為不補零的格式
