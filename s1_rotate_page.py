@@ -16,8 +16,8 @@ def parse_args():
     args = parser.parse_args()
 
     # 如果執行時沒有給 --id 參數，就用 input() 詢問
-    if args.id is None:
-        args.id = input("請輸入目標資料夾名稱：").strip()
+    if args.name is None:
+        args.name = input("請輸入目標資料夾名稱：").strip()
         
     return args
 
@@ -83,29 +83,51 @@ def boxSize(arr):
     ymin = int(np.amin(box_roll[1]))
     return (xmin, ymin, xmax, ymax)
 
-def get_skew_angle(qrcode_img) -> float:
-    """計算角度
+# def get_skew_angle(qrcode_img) -> float:
+#     """計算角度
     
-    Keyword arguments:
-        qrcode_img -- 含有 qrcode 的圖片
-    Return:
-        angle -- 角度 float
-    """
+#     Keyword arguments:
+#         qrcode_img -- 含有 qrcode 的圖片
+#     Return:
+#         angle -- 角度 float
+#     """
 
-    # cv2.imshow("test", qrcode_img)
-    # cv2.waitKey(0)
+#     # cv2.imshow("test", qrcode_img)
+#     # cv2.waitKey(0)
 
-    gray = 255 - qrcode_img
+#     gray = 255 - qrcode_img
+#     thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
+
+#     coords = np.column_stack(np.where(thresh > 0))
+#     angle = cv2.minAreaRect(coords)[-1] # (0, 90]
+
+#     if angle > 45:
+#         angle = 90 - angle
+#     else:
+#         angle = -angle
+
+#     return angle
+def get_skew_angle(qrcode_img) -> float:
+    # 增加模糊度以去除 QR Code 內部的細節噪點，只保留整體的方塊輪廓
+    blur = cv2.medianBlur(qrcode_img, 5)
+    
+    # 二值化
+    gray = 255 - blur
     thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
 
+    # 獲取所有白色像素點
     coords = np.column_stack(np.where(thresh > 0))
-    angle = cv2.minAreaRect(coords)[-1] # (0, 90]
+    
+    # 獲取最小外接矩形
+    rect = cv2.minAreaRect(coords)
+    angle = rect[-1]
 
-    if angle > 45:
-        angle = 90 - angle
-    else:
+    # 找到與水平或垂直線的微小偏差
+    if angle < 45:
         angle = -angle
-
+    else:
+        angle = 90 - angle
+        
     return angle
 
 def saveImage(image, now_page):
@@ -117,7 +139,7 @@ def saveImage(image, now_page):
     """
     global result_path
     #print("now page is",now_page)
-    cv2.imwrite('./{}/{}.png'.format(result_path, now_page), image)
+    cv2.imwrite(f'./{result_path}/page-{now_page}.png', image)
 
 
 def rotate_img(file_path, index) -> bool:

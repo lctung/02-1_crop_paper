@@ -35,5 +35,5 @@ for %%f in (*.pdf) do (
 )
 
 echo.
-echo === 全部 PDF 處理完畢 ===
+echo === Conversion Completed ===
 pause

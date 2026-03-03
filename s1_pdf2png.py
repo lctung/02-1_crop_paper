@@ -25,7 +25,7 @@ def pdf_to_png(pdf_path, output_folder, start_page=1, end_page=None, dpi=600):
 
         # 進度條顯示
         for page, img in tqdm(enumerate(images, start=start_page), total=len(images), desc="轉換進度"):
-            img.save(os.path.join(output_folder, f"page-{page:02}.png"), "PNG")
+            img.save(os.path.join(output_folder, f"page-{page}.png"), "PNG")
 
         print(f"轉換完成！圖片存儲於：{output_folder}")
 

@@ -77,7 +77,7 @@ def crop_boxes(image_folder, start_page, end_page, min_box_size, padding, json_p
     print(k)
     for page in range(start_page, end_page + 1):
         # 構建檔案名稱
-        image_file = f"page-{page:02}.png"
+        image_file = f"page-{page}.png"
         print(page)
         # 圖片路徑
         image_path = os.path.join(image_folder, image_file)
@@ -100,7 +100,7 @@ def crop_boxes(image_folder, start_page, end_page, min_box_size, padding, json_p
         contours = sorted(contours, key=lambda x: (cv2.boundingRect(x)[1] // 120, cv2.boundingRect(x)[0]))
 
         # 確保目錄存在
-        output_directory = 'crop'
+        output_directory = 'crop_test'
         if os.path.exists(output_directory):
             # 刪除整個資料夾及其內容
             shutil.rmtree(output_directory)
@@ -154,7 +154,7 @@ def crop_boxes(image_folder, start_page, end_page, min_box_size, padding, json_p
 
         bound_output_directory = 'rec_bound'
         os.makedirs(bound_output_directory, exist_ok=True)
-        cv2.imwrite(os.path.join(bound_output_directory, f"page-{page:02}.png"), img_np)
+        cv2.imwrite(os.path.join(bound_output_directory, f"page-{page}.png"), img_np)
 
 
 if __name__ == "__main__":
@@ -164,7 +164,7 @@ if __name__ == "__main__":
     min_box_size = 200 # 設定閾值，只保留寬和高都大於等於這個值的方框
     min_area_threshold = 10
     padding = 20  # 內縮的像素數量
-    json_path = r"CP950-長恨歌.json"  # 請替換為你的 JSON 檔案路徑
+    json_path = r"CP950/CP950-千字文.json"  # 請替換為你的 JSON 檔案路徑
     unicode_num = 100 #請替換成製作稿紙時的文字量
 
     crop_boxes(image_folder, start_page, end_page, min_box_size, padding, json_path, unicode_num)
