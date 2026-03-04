@@ -52,6 +52,7 @@ cd D:\NTUT\AI\Font-Project\02-1_crop_paper
 -----
 ## 執行專案
 詳情請前往以下連結查看簡報
+
 https://docs.google.com/presentation/d/16fZ1fT2xa7GJ0AxGAJZxEh4rVeCELIad/edit?usp=sharing&ouid=116834695962505686161&rtpof=true&sd=true
 
 ### 紙本裁切
@@ -88,6 +89,7 @@ python s1_rotate_page.py
 
 #### 1. 轉檔校正
 ##### 1-a. 使用 pdf2image
+請先檢查 `s1_pdf2png.py` 中 `poppler_path` 路徑
 ```
 python s1_pdf2png.py
 ```
