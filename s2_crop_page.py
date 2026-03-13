@@ -44,7 +44,7 @@ def scale_adjustment(word_img, img_name):
     cv2.imwrite(annotated_img_path, annotated_img)
     
     # 數值越大文字越小，數值越小文字越大
-    crop_length = 260
+    crop_length = 200
     
     h, w = word_img_copy.shape
     left_x = max(0, cX - int(crop_length / 2))
@@ -70,7 +70,7 @@ def get_unique_filename(directory, filename):
     return unique_filename
 
 
-def crop_boxes(image_folder, start_page, end_page, min_box_size, padding, json_path, unicode_num):
+def crop_boxes(input_folder, output_folder, start_page, end_page, min_box_size, padding, json_path, unicode_num):
     # 讀取圖片
     unicode_list = read_json(json_path, unicode_num)
     k = (start_page - 1) * 100
@@ -80,7 +80,7 @@ def crop_boxes(image_folder, start_page, end_page, min_box_size, padding, json_p
         image_file = f"page-{page}.png"
         print(page)
         # 圖片路徑
-        image_path = os.path.join(image_folder, image_file)
+        image_path = os.path.join(input_folder, image_file)
 
         # 讀取圖片
         image = Image.open(image_path)
@@ -100,11 +100,11 @@ def crop_boxes(image_folder, start_page, end_page, min_box_size, padding, json_p
         contours = sorted(contours, key=lambda x: (cv2.boundingRect(x)[1] // 120, cv2.boundingRect(x)[0]))
 
         # 確保目錄存在
-        output_directory = 'crop_test'
-        if os.path.exists(output_directory):
+        
+        if os.path.exists(output_folder):
             # 刪除整個資料夾及其內容
-            shutil.rmtree(output_directory)
-        os.makedirs(output_directory, exist_ok=True)
+            shutil.rmtree(output_folder)
+        os.makedirs(output_folder, exist_ok=True)
 
         # 繪製藍色的邊框並裁切方框
         draw = ImageDraw.Draw(image)
@@ -141,10 +141,10 @@ def crop_boxes(image_folder, start_page, end_page, min_box_size, padding, json_p
                 original_filename = f'{unicode_list[k]}.png'
 
                 # 2. 透過函式取得一個「保證不重複」的檔名
-                final_filename = get_unique_filename(output_directory, original_filename)
+                final_filename = get_unique_filename(output_folder, original_filename)
 
                 # 3. 執行儲存
-                cv2.imwrite(os.path.join(output_directory, final_filename), cropped_image)
+                cv2.imwrite(os.path.join(output_folder, final_filename), cropped_image)
 
                 k += 1
                 cv2.rectangle(img_np, (x, y), (x + w, y + h), (255, 0, 0), 2)
@@ -158,13 +158,14 @@ def crop_boxes(image_folder, start_page, end_page, min_box_size, padding, json_p
 
 
 if __name__ == "__main__":
-    image_folder = r"D:\NTUT\AI\Font-Project\02-1_crop_paper\rotated_114598033_千字文" #輸入你的rotated資料夾路徑
+    input_folder = r"D:\NTUT\AI\Font-Project\02-1_crop_paper\rotated_114598033_長恨歌" #輸入你的rotated資料夾路徑
+    output_folder = r"crop/crop_長恨歌" # 更改輸出資料夾名稱
     start_page = int(input("Enter start page: "))  # 起始頁數
     end_page = int(input("Enter end page: "))      # 結束頁數
-    min_box_size = 200 # 設定閾值，只保留寬和高都大於等於這個值的方框
+    min_box_size = 180 # 設定閾值，只保留寬和高都大於等於這個值的方框
     min_area_threshold = 10
     padding = 20  # 內縮的像素數量
-    json_path = r"CP950/CP950-千字文.json"  # 請替換為你的 JSON 檔案路徑
+    json_path = r"CP950/CP950-長恨歌.json"  # 請替換為你的 JSON 檔案路徑
     unicode_num = 100 #請替換成製作稿紙時的文字量
 
-    crop_boxes(image_folder, start_page, end_page, min_box_size, padding, json_path, unicode_num)
+    crop_boxes(input_folder, output_folder, start_page, end_page, min_box_size, padding, json_path, unicode_num)
