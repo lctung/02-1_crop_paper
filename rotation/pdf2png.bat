@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-set "POPPLER_BIN=C:\Users\cg\miniconda3\envs\fontenv\Library\bin\pdftoppm.exe"
+set "POPPLER_BIN=C:\Users\ctl20\.conda\envs\fontenv\Library\bin\pdftoppm.exe"
 
 for %%f in (*.pdf) do (
     echo [*] Processing... %%f

@@ -71,7 +71,11 @@ def get_unique_filename(directory, filename):
 
 
 def crop_boxes(input_folder, output_folder, start_page, end_page, min_box_size, padding, json_path, unicode_num):
-    # 讀取圖片
+    if os.path.exists(output_folder):
+        # 刪除整個資料夾及其內容
+        shutil.rmtree(output_folder)
+        os.makedirs(output_folder, exist_ok=True)
+
     unicode_list = read_json(json_path, unicode_num)
     k = (start_page - 1) * 100
     print(k)
@@ -98,13 +102,6 @@ def crop_boxes(input_folder, output_folder, start_page, end_page, min_box_size, 
 
         # 對輪廓進行處理，將 y 值相差小於 10 的視為同一行
         contours = sorted(contours, key=lambda x: (cv2.boundingRect(x)[1] // 120, cv2.boundingRect(x)[0]))
-
-        # 確保目錄存在
-        
-        if os.path.exists(output_folder):
-            # 刪除整個資料夾及其內容
-            shutil.rmtree(output_folder)
-        os.makedirs(output_folder, exist_ok=True)
 
         # 繪製藍色的邊框並裁切方框
         draw = ImageDraw.Draw(image)
@@ -137,13 +134,9 @@ def crop_boxes(input_folder, output_folder, start_page, end_page, min_box_size, 
 
                 cropped_image = scale_adjustment(processed_image, unicode_list[k])
 
-                # 1. 先取得原本想用的檔名
+                # 檢查是否為重複字，並用 -n 輔助命名
                 original_filename = f'{unicode_list[k]}.png'
-
-                # 2. 透過函式取得一個「保證不重複」的檔名
                 final_filename = get_unique_filename(output_folder, original_filename)
-
-                # 3. 執行儲存
                 cv2.imwrite(os.path.join(output_folder, final_filename), cropped_image)
 
                 k += 1
@@ -158,14 +151,14 @@ def crop_boxes(input_folder, output_folder, start_page, end_page, min_box_size, 
 
 
 if __name__ == "__main__":
-    input_folder = r"D:\NTUT\AI\Font-Project\02-1_crop_paper\rotated_114598033_長恨歌" #輸入你的rotated資料夾路徑
-    output_folder = r"crop/crop_長恨歌" # 更改輸出資料夾名稱
+    input_folder = r"D:\NTUT\AI\Font-Project\02-1_crop_paper\rotation\rotated_114598033_賴秋彤_千字文" #輸入你的rotated資料夾路徑
+    output_folder = r"crop/crop_千字文" # 更改輸出資料夾名稱
     start_page = int(input("Enter start page: "))  # 起始頁數
     end_page = int(input("Enter end page: "))      # 結束頁數
     min_box_size = 180 # 設定閾值，只保留寬和高都大於等於這個值的方框
     min_area_threshold = 10
     padding = 20  # 內縮的像素數量
-    json_path = r"CP950/CP950-長恨歌.json"  # 請替換為你的 JSON 檔案路徑
-    unicode_num = 100 #請替換成製作稿紙時的文字量
+    json_path = r"./CP950/CP950-千字文.json"  # 請替換為你的 JSON 檔案路徑
+    unicode_num = 1000 #請替換成製作稿紙時的文字量
 
     crop_boxes(input_folder, output_folder, start_page, end_page, min_box_size, padding, json_path, unicode_num)
