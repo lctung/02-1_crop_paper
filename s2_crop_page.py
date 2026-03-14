@@ -74,7 +74,8 @@ def crop_boxes(input_folder, output_folder, start_page, end_page, min_box_size, 
     if os.path.exists(output_folder):
         # 刪除整個資料夾及其內容
         shutil.rmtree(output_folder)
-        os.makedirs(output_folder, exist_ok=True)
+        
+    os.makedirs(output_folder, exist_ok=True)
 
     unicode_list = read_json(json_path, unicode_num)
     k = (start_page - 1) * 100
@@ -151,14 +152,14 @@ def crop_boxes(input_folder, output_folder, start_page, end_page, min_box_size, 
 
 
 if __name__ == "__main__":
-    input_folder = r"D:\NTUT\AI\Font-Project\02-1_crop_paper\rotation\rotated_114598033_賴秋彤_千字文" #輸入你的rotated資料夾路徑
-    output_folder = r"crop/crop_千字文" # 更改輸出資料夾名稱
+    input_folder = r"D:\NTUT\AI\Font-Project\02-1_crop_paper\rotation\rotated_114598033_賴秋彤_洛神賦" #輸入你的rotated資料夾路徑
+    output_folder = r"crop/crop_洛神賦" # 更改輸出資料夾名稱
     start_page = int(input("Enter start page: "))  # 起始頁數
     end_page = int(input("Enter end page: "))      # 結束頁數
     min_box_size = 180 # 設定閾值，只保留寬和高都大於等於這個值的方框
     min_area_threshold = 10
     padding = 20  # 內縮的像素數量
-    json_path = r"./CP950/CP950-千字文.json"  # 請替換為你的 JSON 檔案路徑
-    unicode_num = 1000 #請替換成製作稿紙時的文字量
+    json_path = r"./CP950/CP950-洛神賦.json"  # 請替換為你的 JSON 檔案路徑
+    unicode_num = 912 #請替換成製作稿紙時的文字量
 
     crop_boxes(input_folder, output_folder, start_page, end_page, min_box_size, padding, json_path, unicode_num)
