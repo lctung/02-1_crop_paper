@@ -85,6 +85,8 @@ python s1_rotate_page.py
     └── crop_姓氏名字號
     ```
   - `json_path`：原先製作此稿紙的 `CP950\CP950-{標題}` 位置
+  - `unicode_num`：填入稿紙字數
+  
 - 執行程式
     ```
     python s2_crop_page.py
@@ -112,6 +114,7 @@ python s1_pdf2png.py
 
 ##### 1-b. 使用 batch file
 請先檢查 `pdf2png.bat` 中 `pdftoppm.exe` 路徑是否正確
+- `pdftoppm.exe` 的參考位置: `C:\Users\Users\.conda\envs\fontenv\Library\bin\pdftoppm.exe`
 ```
 1. 檔案位置 /02-1_crop_paper/rotation/
 2. 將要轉檔的稿紙(.pdf) 放至 rotation 底下
