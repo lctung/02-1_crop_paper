@@ -6,7 +6,7 @@ import json
 import shutil
 
 def read_json(file, unicode_num):
-    with open(file) as f:
+    with open(file, 'r', encoding='utf-8') as f:
         p = json.load(f)
         unicode_list = [''] * unicode_num
         for i in range(unicode_num):
@@ -89,7 +89,7 @@ def crop_boxes(input_folder, output_folder, start_page, end_page, min_box_size, 
 
         # 讀取圖片
         image = Image.open(image_path)
-        img_np = cv2.imread(image_path, cv2.IMREAD_COLOR)
+        img_np = cv2.imdecode(np.fromfile(image_path, dtype=np.uint8), cv2.IMREAD_COLOR)
         gray = cv2.cvtColor(img_np, cv2.COLOR_BGR2GRAY)
 
         # 使用二值化處理，使方框更容易被檢測
@@ -97,13 +97,20 @@ def crop_boxes(input_folder, output_folder, start_page, end_page, min_box_size, 
         # 排除右下角的QR碼區域
         h, w = binary.shape
         qr_size = int(min(h, w) * 0.12)  # 假設QR碼大約佔圖片的12%
-        binary[-qr_size:, -qr_size:] = 0  # 將右下角區域設為黑色
+        binary[-qr_size:, :] = 0  # 將下方區域設為黑色 (編號、QR碼區域)
         # 使用輪廓檢測方框
         contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-        # 對輪廓進行處理，將 y 值相差小於 10 的視為同一行
-        contours = sorted(contours, key=lambda x: (cv2.boundingRect(x)[1] // 120, cv2.boundingRect(x)[0]))
-
+        # 對輪廓進行處理，根據位置排序，從上到下、從左到右
+        height = h // 12  # 整張紙的高度大約有 12 個字高
+        contours = sorted(
+            contours,
+            key=lambda x: (
+                (cv2.boundingRect(x)[1] + (height // 2)) // height,
+                cv2.boundingRect(x)[0]
+            )
+        )
+        
         # 繪製藍色的邊框並裁切方框
         draw = ImageDraw.Draw(image)
 
@@ -138,7 +145,12 @@ def crop_boxes(input_folder, output_folder, start_page, end_page, min_box_size, 
                 # 檢查是否為重複字，並用 -n 輔助命名
                 original_filename = f'{unicode_list[k]}.png'
                 final_filename = get_unique_filename(output_folder, original_filename)
-                cv2.imwrite(os.path.join(output_folder, final_filename), cropped_image)
+                
+                file_path = os.path.join(output_folder, final_filename)
+                res, im_png = cv2.imencode('.png', cropped_image)
+                if res:
+                    with open(file_path, mode='wb') as f:
+                        im_png.tofile(f)
 
                 k += 1
                 cv2.rectangle(img_np, (x, y), (x + w, y + h), (255, 0, 0), 2)
