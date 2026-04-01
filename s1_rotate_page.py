@@ -139,7 +139,12 @@ def saveImage(image, now_page):
     """
     global result_path
     #print("now page is",now_page)
-    cv2.imwrite(f'./{result_path}/page-{now_page}.png', image)
+    
+    file_path = f'./{result_path}/page-{now_page}.png'
+    res, im_png = cv2.imencode('.png', image)
+    if res:
+        with open(file_path, mode='wb') as f:
+            im_png.tofile(f)
 
 
 def rotate_img(file_path, index) -> bool:
@@ -154,7 +159,7 @@ def rotate_img(file_path, index) -> bool:
 
     # Read Image from path
     try:
-        img = cv2.imread(file_path)
+        img = cv2.imdecode(np.fromfile(file_path, dtype=np.uint8), cv2.IMREAD_COLOR)
     except:
         print("\n 錯誤檔案：{}".format(file_path))
         return False
