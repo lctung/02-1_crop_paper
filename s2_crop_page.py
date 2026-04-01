@@ -101,9 +101,16 @@ def crop_boxes(input_folder, output_folder, start_page, end_page, min_box_size, 
         # 使用輪廓檢測方框
         contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-        # 對輪廓進行處理，將 y 值相差小於 10 的視為同一行
-        contours = sorted(contours, key=lambda x: (cv2.boundingRect(x)[1] // 120, cv2.boundingRect(x)[0]))
-
+        # 對輪廓進行處理，根據位置排序，從上到下、從左到右
+        height = h // 12  # 整張紙的高度大約有 12 個字高
+        contours = sorted(
+            contours,
+            key=lambda x: (
+                (cv2.boundingRect(x)[1] + (height // 2)) // height,
+                cv2.boundingRect(x)[0]
+            )
+        )
+        
         # 繪製藍色的邊框並裁切方框
         draw = ImageDraw.Draw(image)
 
