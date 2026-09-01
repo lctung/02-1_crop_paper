@@ -62,7 +62,7 @@ https://docs.google.com/presentation/d/16fZ1fT2xa7GJ0AxGAJZxEh4rVeCELIad/edit?us
 #### 1. 旋轉校正
 ```
 # 擇一執行
-python –name {資料夾名稱} s1_rotate_page.py
+python s1_rotate_page.py --name {資料夾名稱}
 python s1_rotate_page.py
 ```
 結果儲存於 ./rotated_{學號}_{稿紙標題}
