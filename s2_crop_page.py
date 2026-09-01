@@ -166,7 +166,6 @@ def crop_boxes(start_page, end_page):
         cv2.imwrite(os.path.join(bound_output_directory, f"page-{page}.png"), img_np)
 
 if __name__ == "__main__":
-    # 根據總字數與每頁字數，自動計算所需的起始與結束頁數
     auto_start_page = 1
     auto_end_page = (UNICODE_NUM + PER_PAGE - 1) // PER_PAGE 
     
