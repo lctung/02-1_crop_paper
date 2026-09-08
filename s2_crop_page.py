@@ -6,15 +6,18 @@ import json
 import shutil
 
 # ====== 自行設定變數 ======
-INPUT_FOLDER = r".\rotated_115598014_2"
-OUTPUT_FOLDER = r"crop\crop_2"
-JSON_PATH = r".\CP950\CP950-其他.json"
-UNICODE_NUM = 605
-CROP_LENGTH = 200
+INPUT_FOLDER = r".\rotated_114C51516_1"
+OUTPUT_FOLDER = r"crop\crop_114C51516_1"
+JSON_PATH = r".\CP950\CP950-千字文.json"
+UNICODE_NUM = 1000           # 稿紙字數
+CROP_LENGTH = 260            # 數字越大字越小
 MIN_BOX_SIZE = 180
 MIN_AREA_THRESHOLD = 10
 PADDING = 20
 PER_PAGE = 100
+
+DETECT_FOLDER = r'.\detect'
+BINARY_INV_FOLDER = r'.\binary_inv'
 # ============================
 
 def read_json(file, unicode_num):
@@ -37,6 +40,8 @@ def scale_adjustment(word_img, img_name):
     # 二值化處理
     binary_word_img = cv2.cvtColor(word_img_copy, cv2.COLOR_BGR2GRAY) if len(word_img_copy.shape) == 3 else word_img_copy
     binary_word_img = cv2.threshold(binary_word_img, 127, 255, cv2.THRESH_BINARY_INV)[1]
+    binary_inv_img_path = os.path.join(BINARY_INV_FOLDER, f'{img_name}_binary_inv.png')
+    cv2.imwrite(binary_inv_img_path, binary_word_img)
 
     # 取得文字 Bounding Box
     topLeftX, topLeftY, word_w, word_h = cv2.boundingRect(binary_word_img)
@@ -115,7 +120,8 @@ def crop_boxes(start_page, end_page):
         contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         # 對輪廓進行處理，將 y 值相差小於 10 的視為同一行
-        contours = sorted(contours, key=lambda x: (cv2.boundingRect(x)[1] // 120, cv2.boundingRect(x)[0]))
+        # contours = sorted(contours, key=lambda x: (cv2.boundingRect(x)[1] // 120, cv2.boundingRect(x)[0]))
+        contours = sorted(contours, key=lambda x: ((cv2.boundingRect(x)[1] - 300) // 585, cv2.boundingRect(x)[0]))
 
         for i, contour in enumerate(contours):
             if page_char_count >= PER_PAGE:      # 這一頁裁滿就強制換頁，不再往下溢出
@@ -141,6 +147,7 @@ def crop_boxes(start_page, end_page):
                 kernel = np.ones((2, 2), np.uint8)
                 processed_image = cv2.morphologyEx(median_filtered, cv2.MORPH_OPEN, kernel)
                 connectivity, labels, stats, centroids = cv2.connectedComponentsWithStats(processed_image, connectivity=8)
+
                 
                 for j in range(1, connectivity):
                     area = stats[j, cv2.CC_STAT_AREA]
@@ -157,7 +164,7 @@ def crop_boxes(start_page, end_page):
                 original_filename = f'{unicode_list[current_index]}.png'
                 final_filename = get_unique_filename(OUTPUT_FOLDER, original_filename)
                 cv2.imwrite(os.path.join(OUTPUT_FOLDER, final_filename), cropped_image)
-                
+                cv2.imwrite(os.path.join(DETECT_FOLDER, final_filename), processed_image)
                 page_char_count += 1
                 cv2.rectangle(img_np, (x, y), (x + w, y + h), (255, 0, 0), 2)
 
