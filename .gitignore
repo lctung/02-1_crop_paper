@@ -1,6 +1,6 @@
 ChangHenGe_*
 lai200*
-114*/
+11*/
 rotated_*/
 annotated_images/
 crop_*/
@@ -8,3 +8,7 @@ rec_bound/
 
 CP950-*
 CP950/
+
+check_crop_name/
+binary_inv/
+detect/
