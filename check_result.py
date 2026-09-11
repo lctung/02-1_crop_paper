@@ -2,8 +2,8 @@ import os
 import shutil
 
 # ===== 請確認這裡是你的裁切資料夾路徑 =====
-INPUT_FOLDER = r"crop\crop_114C51509_1"
-CHECK_FOLDER = r"check_crop_name\name_114C51509_1"
+INPUT_FOLDER = r"crop\crop_114C51512_1"
+CHECK_FOLDER = r"check_crop_name\name_114C51512_1"
 # ==========================================
 
 def copy_and_rename_files():

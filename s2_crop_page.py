@@ -6,10 +6,10 @@ import json
 import shutil
 
 # ====== 自行設定變數 ======
-INPUT_FOLDER = r".\rotated_114C51516_1"
-OUTPUT_FOLDER = r"crop\crop_114C51516_1"
-JSON_PATH = r".\CP950\CP950-千字文.json"
-UNICODE_NUM = 1000           # 稿紙字數
+INPUT_FOLDER = r".\rotated_114C51512_2"
+OUTPUT_FOLDER = r"crop\crop_114C51512_2"
+JSON_PATH = r".\CP950\CP950-其他.json"
+UNICODE_NUM = 605           # 稿紙字數
 CROP_LENGTH = 260            # 數字越大字越小
 MIN_BOX_SIZE = 180
 MIN_AREA_THRESHOLD = 10
@@ -115,13 +115,17 @@ def crop_boxes(start_page, end_page):
         h_img, w_img = binary.shape
         qr_size = int(min(h_img, w_img) * 0.12)  # 假設QR碼大約佔圖片的12%
         binary[-qr_size:, -qr_size:] = 0  # 將右下角區域設為黑色
+
+        # 將頁首頂部 350 像素直接抹黑
+        binary[:350, :] = 0
         
         # 使用輪廓檢測方框
         contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         # 對輪廓進行處理，將 y 值相差小於 10 的視為同一行
         # contours = sorted(contours, key=lambda x: (cv2.boundingRect(x)[1] // 120, cv2.boundingRect(x)[0]))
-        contours = sorted(contours, key=lambda x: ((cv2.boundingRect(x)[1] - 300) // 585, cv2.boundingRect(x)[0]))
+        # contours = sorted(contours, key=lambda x: ((cv2.boundingRect(x)[1] - 300) // 585, cv2.boundingRect(x)[0]))
+        contours = sorted(contours, key=lambda x: ((cv2.boundingRect(x)[1] - 200) // 612, cv2.boundingRect(x)[0]))
 
         for i, contour in enumerate(contours):
             if page_char_count >= PER_PAGE:      # 這一頁裁滿就強制換頁，不再往下溢出
