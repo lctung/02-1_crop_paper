@@ -6,10 +6,10 @@ import json
 import shutil
 
 # ====== 自行設定變數 ======
-INPUT_FOLDER = r".\rotated_114C51512_2"
-OUTPUT_FOLDER = r"crop\crop_114C51512_2"
-JSON_PATH = r".\CP950\CP950-其他.json"
-UNICODE_NUM = 605           # 稿紙字數
+INPUT_FOLDER = r".\rotated_demo"
+OUTPUT_FOLDER = r"crop\crop_demo"
+JSON_PATH = r".\CP950\CP950-千字文.json"
+UNICODE_NUM = 100           # 稿紙字數
 CROP_LENGTH = 260            # 數字越大字越小
 MIN_BOX_SIZE = 180
 MIN_AREA_THRESHOLD = 10
@@ -89,7 +89,7 @@ def crop_boxes(start_page, end_page):
 
     unicode_list = read_json(JSON_PATH, UNICODE_NUM)
     for page in range(start_page, end_page + 1):
-        #限制字數
+        # 限制字數
         k = (page - 1) * PER_PAGE
         print(f"Processing starting character index: {k}")
         page_char_count = 0 
@@ -111,30 +111,34 @@ def crop_boxes(start_page, end_page):
         # 使用二值化處理，使方框更容易被檢測
         _, binary = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY_INV)
         
-        # 排除右下角的QR碼區域
-        h_img, w_img = binary.shape
-        qr_size = int(min(h_img, w_img) * 0.12)  # 假設QR碼大約佔圖片的12%
-        binary[-qr_size:, -qr_size:] = 0  # 將右下角區域設為黑色
-
-        # 將頁首頂部 350 像素直接抹黑
+        # 將底部的頁碼、QRcode區域設為黑色
+        binary[6290:, :] = 0  
+        # 將頂部的姓名欄位設為黑色
         binary[:350, :] = 0
-        
+
+        cv2.imwrite(os.path.join(OUTPUT_FOLDER, 'binary.png'), binary)
+
         # 使用輪廓檢測方框
         contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
+        valid_contours = []
+        for c in contours:
+            x, y, w, h = cv2.boundingRect(c)
+            # 略過小於閾值的方框
+            if w >= MIN_BOX_SIZE and h >= MIN_BOX_SIZE:
+                valid_contours.append(c)
+            
         # 對輪廓進行處理，將 y 值相差小於 10 的視為同一行
-        # contours = sorted(contours, key=lambda x: (cv2.boundingRect(x)[1] // 120, cv2.boundingRect(x)[0]))
-        # contours = sorted(contours, key=lambda x: ((cv2.boundingRect(x)[1] - 300) // 585, cv2.boundingRect(x)[0]))
-        contours = sorted(contours, key=lambda x: ((cv2.boundingRect(x)[1] - 200) // 612, cv2.boundingRect(x)[0]))
+        valid_contours = sorted(valid_contours, key=lambda x: ((cv2.boundingRect(x)[1] - 300) // 585, cv2.boundingRect(x)[0]))
+        # valid_contours = sorted(valid_contours, key=lambda x: ((cv2.boundingRect(x)[1] - 200) // 612, cv2.boundingRect(x)[0]))
 
-        for i, contour in enumerate(contours):
+        for i, valid_contour in enumerate(valid_contours):
             if page_char_count >= PER_PAGE:      # 這一頁裁滿就強制換頁，不再往下溢出
                 break
-            x, y, w, h = cv2.boundingRect(contour)
+            x, y, w, h = cv2.boundingRect(valid_contour)
             
             # 排除右下角的QR碼區域
-            if x + w > img_np.shape[1] - qr_size and y + h > img_np.shape[0] - qr_size:
-                continue
+            # if x + w > img_np.shape[1] - qr_size and y + h > img_np.shape[0] - qr_size:
+            #     continue
 
             # 內縮方框
             x += PADDING
@@ -142,35 +146,34 @@ def crop_boxes(start_page, end_page):
             w -= 2 * PADDING
             h -= 2 * PADDING
 
-            # 略過小於閾值的方框
-            if w >= MIN_BOX_SIZE and h >= MIN_BOX_SIZE:
-                cropped_image = Image.fromarray(cv2.cvtColor(img_np[y:y + h, x:x + w], cv2.COLOR_BGR2RGB))
-                cropped_image = np.array(cropped_image)
-                cropped_image = cv2.cvtColor(cropped_image, cv2.COLOR_BGR2GRAY)
-                median_filtered = cv2.medianBlur(cropped_image, 3)
-                kernel = np.ones((2, 2), np.uint8)
-                processed_image = cv2.morphologyEx(median_filtered, cv2.MORPH_OPEN, kernel)
-                connectivity, labels, stats, centroids = cv2.connectedComponentsWithStats(processed_image, connectivity=8)
+            # 切割在這
+            cropped_image = gray[y:y + h, x:x + w]
+            # 去噪點
+            median_filtered = cv2.medianBlur(cropped_image, 3)
+            # 消除筆畫周圍極細微的毛刺    
+            kernel = np.ones((2, 2), np.uint8)
+            processed_image = cv2.morphologyEx(median_filtered, cv2.MORPH_OPEN, kernel)
+            # 清除筆畫以外的微小雜訊（小黑點、紙張污漬、飛墨）
+            connectivity, labels, stats, centroids = cv2.connectedComponentsWithStats(processed_image, connectivity=8)
+            for j in range(1, connectivity):
+                area = stats[j, cv2.CC_STAT_AREA]
+                if area < MIN_AREA_THRESHOLD:
+                    processed_image[labels == j] = 0
+            
+            current_index = k + page_char_count
+            if current_index >= UNICODE_NUM:
+                break
 
-                
-                for j in range(1, connectivity):
-                    area = stats[j, cv2.CC_STAT_AREA]
-                    if area < MIN_AREA_THRESHOLD:
-                        processed_image[labels == j] = 0
-                
-                current_index = k + page_char_count
-                if current_index >= UNICODE_NUM:
-                    break
+            cropped_image = scale_adjustment(processed_image, unicode_list[current_index])
 
-                cropped_image = scale_adjustment(processed_image, unicode_list[current_index])
+            # 將重複出現的字，檔案命名加上 -n
+            original_filename = f'{unicode_list[current_index]}.png'
+            final_filename = get_unique_filename(OUTPUT_FOLDER, original_filename)
+            cv2.imwrite(os.path.join(OUTPUT_FOLDER, final_filename), cropped_image)
+            cv2.imwrite(os.path.join(DETECT_FOLDER, final_filename), processed_image)
 
-                # 檢查是否為重複字，並用 -n 輔助命名
-                original_filename = f'{unicode_list[current_index]}.png'
-                final_filename = get_unique_filename(OUTPUT_FOLDER, original_filename)
-                cv2.imwrite(os.path.join(OUTPUT_FOLDER, final_filename), cropped_image)
-                cv2.imwrite(os.path.join(DETECT_FOLDER, final_filename), processed_image)
-                page_char_count += 1
-                cv2.rectangle(img_np, (x, y), (x + w, y + h), (255, 0, 0), 2)
+            page_char_count += 1
+            cv2.rectangle(img_np, (x, y), (x + w, y + h), (255, 0, 0), 2)
 
         bound_output_directory = 'rec_bound'
         os.makedirs(bound_output_directory, exist_ok=True)
